@@ -1,0 +1,46 @@
+{
+  "name": "interview-mate-ai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API server for Interview Mate AI",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:dist": "npm run build && nodemon --watch dist --ext js,json --exec \"node dist/server.js\"",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "firebase-admin": "^14.0.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "openai": "^6.27.0",
+    "socket.io": "^4.8.1",
+    "tesseract.js": "^7.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "nodemon": "^3.1.11",
+    "prisma": "^6.19.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

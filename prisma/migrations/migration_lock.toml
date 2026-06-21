@@ -1,0 +1,2 @@
+# Prisma uses this file to ensure migrations remain tied to PostgreSQL.
+provider = "postgresql"

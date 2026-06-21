@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  firebaseUid String   @unique
+  email       String   @unique
+  name        String?
+  photo       String?
+  credits     Int      @default(20)
+
+  interviews Interview[]
+  sessions   InterviewSession[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model InterviewSession {
+  id      String @id @default(cuid())
+  userId  String
+  title   String?
+  company String?
+  role    String?
+  status  String @default("active")
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  transcripts Transcript[]
+  suggestions Suggestion[]
+  screenContexts ScreenContext[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, startedAt])
+}
+
+model Transcript {
+  id        String @id @default(cuid())
+  sessionId String
+  speaker   String
+  text      String
+
+  createdAt DateTime @default(now())
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model Suggestion {
+  id         String @id @default(cuid())
+  sessionId  String
+  question   String
+  answer     String
+  provider   String   @default("")
+  type       String   @default("THEORY")
+  code       String?
+  output     String?
+  language   String?
+  complexity String?
+  rootCause  String?
+  fix        String?
+  analysisMode String @default("GENERAL")
+  promptDebug String @default("")
+  keyPoints  Json
+  confidence Float
+
+  createdAt DateTime @default(now())
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model ScreenContext {
+  id        String @id @default(cuid())
+  sessionId String
+  source    String
+  content   String
+  rawOcrText String @default("")
+  ocrConfidence Float @default(0)
+  captureStatus String @default("working")
+  ocrStatus String @default("pending")
+  code      String @default("")
+  language  String @default("")
+  terminalOutput String @default("")
+  errors    String @default("")
+  detectedQuestion String @default("")
+  codeDetected Boolean @default(false)
+  screenshotBytes Int @default(0)
+  ocrCharacterCount Int @default(0)
+  languageConfidence Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model Interview {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  role          String
+  experience    Int
+  difficulty    String
+  interviewType String
+  status        String   @default("created")
+
+  questions InterviewQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model InterviewQuestion {
+  id          String   @id @default(cuid())
+  interviewId String
+  question    String
+  answer      String?
+  score       Int?
+  feedback    String?
+
+  createdAt DateTime @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId, createdAt])
+}

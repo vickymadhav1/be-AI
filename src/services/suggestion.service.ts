@@ -12,13 +12,16 @@ export const createSuggestion = async (
   question: string,
 ) => {
   await getSessionById(userId, sessionId);
+  
   const [transcriptHistory, screenContext] = await Promise.all([
+    
     prisma.transcript.findMany({
       where: { sessionId },
       orderBy: { createdAt: 'desc' },
       take: 12,
       select: { speaker: true, text: true },
     }),
+    
     prisma.screenContext.findFirst({
       where: { sessionId },
       orderBy: { createdAt: 'desc' },
@@ -30,7 +33,15 @@ export const createSuggestion = async (
         errors: true,
       },
     }),
+    
   ]);
+  console.log('LATEST_SCREEN_CONTEXT', {
+  // id: screenContext?.id,
+  language: screenContext?.language,
+  codeLength: screenContext?.code?.length,
+  contentLength: screenContext?.content?.length,
+  codePreview: screenContext?.code?.slice(0, 200),
+})
   const analysisMode = detectAnalysisMode(question);
   const classification = await classifyQuestion(
     question,

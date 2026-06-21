@@ -12,6 +12,9 @@ const imageUpload = multer({
   fileFilter: (_request, file, callback) => callback(null, file.mimetype.startsWith('image/')),
 });
 
+console.log('SCREEN ROUTER LOADED')
+console.log(screenCaptureSchema.shape)
+
 export const screenRouter = Router();
 screenRouter.use(authenticateJwt);
 screenRouter.post(

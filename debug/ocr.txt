@@ -1,0 +1,50 @@
+# GrogCloud     x [N NeonConsole x @ howdoihidem x g
+
+oo
+
+25 stackblitz.com/edit/react-ghirjh3f?file=src%2FApp.js
+
+[3] Save   Ed Fork ~ @ Share                               Don't lose your work!
+PROJECT                     D> App.js ®
+> INFO                              import React from "react";
+« FILES                                   import "./style.css";
+> 8 public                             export default function App() fi
+vO src
+° App.js                            const data = [1,2,2,3]
+ index.js                          7
+find duplicat
+I style.css                          Jing duplicates
+{.} package json                         res
+\ DEPENDENCIES                                           div.
+react                    18.1.0             h1>Hello StackBlitz!</hl
+react-dom                  18.1.0
+
+div.
+Enter package name
+
+Ask bolt.new
+
+StackBlitz's Al pair programming assistant
+
+Something broken? File a bug!
+
+resumeiq -
+
+p>Start editing to see some magic happen :)
+
+Auth x @ stackblitzreact Xx  [#l React (duplicat: X Deep Debuggin Xx +
+
+<4 Ask Gemini
+[EA Ag      ®          M
+Sign in to save your changes                                                                                      Signin           Get started
+&       oo            0) A react-ghirjh3f.stackblitz.io                2 =
+
+Error in src/App.js (8:3)
+
+Unexpected keyword or identifier.
+
+p
+
+QB
+
+Console

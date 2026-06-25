@@ -1,90 +1,55 @@
 groq:llama-3.3-70b-versatile
 
-Question type: CODING_PROMPT
+Question type: THEORY
 
-Current question: find duplicat
+Current question: What is Vue.js
 
-Latest transcript: interviewer: What's up?
+Latest transcript: interviewer: What is the name?
 
 Previous transcript history:
-interviewer: What is waiting for you?
-interviewer: What is ReactJS?
-interviewer: What is React?
-interviewer: What is ReactJS?
-interviewer: What is ReactJS?
 interviewer: What's up?
-interviewer: What's up?
+interviewer: What is the name?
 
 Visible screen/editor/clipboard context:
-The image shows a StackBlitz project with a React application. The code is written in JavaScript and appears to be a basic React component.
+The image appears to be a screenshot of a computer screen with multiple browser tabs open. One of the tabs has a pop-up window with the question 'What is Vue.js'. The browser console is also visible.
 
-# GrogCloud     x [N NeonConsole x @ howdoihidem x g
+Chrome File Edit View History Bookmarks Profiles Tab
 
-oo
+00    Vv   ao Leave Tracker.xlsx    xX    A% Chat | Tatikonda, m=
 
-25 stackblitz.com/edit/react-ghirjh3f?file=src%2FApp.js
+xX  fo] Breast_dashboard.x! X  4 AZBrain Dashboard  xX
 
-[3] Save   Ed Fork ~ @ Share                               Don't lose your work!
-PROJECT                     D> App.js ®
-> INFO                              import React from "react";
-« FILES                                   import "./style.css";
-> 8 public                             export default function App() fi
-vO src
-° App.js                            const data = [1,2,2,3]
- index.js                          7
-find duplicat
-I style.css                          Jing duplicates
-{.} package json                         res
-\ DEPENDENCIES                                           div.
-react                    18.1.0             h1>Hello StackBlitz!</hl
-react-dom                  18.1.0
+ Debugging Interview.  X   & New Tab        Xx   ar       4 Ask Gemini
+a   N
+& = CG G Search Google or type a URL                                                                         Q  ©  1)   Mod
+rd
+Ef                                                                                                                                                                     C3 All Bookmarks
+INTERVIEW MATE Al COMPANION
+3                                                                                                                                        What is Vue.js
+i [D Elements Console Sources Network Performance Memory Application Security
+|        v                  .
+1D] (2) ~  top v  ©   Y Filter                                         No screenshot captured yet.
+>|
 
-div.
-Enter package name
+CONFIDENCE
 
-Ask bolt.new
+80%
 
-StackBlitz's Al pair programming assistant
+Provider: grog                                   Captured 11:26:48 AM
 
-Something broken? File a bug!
+TESFEO0FE”-A00-000 PNBE2GEO0 "0 ¥
 
-resumeiq -
-
-p>Start editing to see some magic happen :)
-
-Auth x @ stackblitzreact Xx  [#l React (duplicat: X Deep Debuggin Xx +
-
-<4 Ask Gemini
-[EA Ag      ®          M
-Sign in to save your changes                                                                                      Signin           Get started
-&       oo            0) A react-ghirjh3f.stackblitz.io                2 =
-
-Error in src/App.js (8:3)
-
-Unexpected keyword or identifier.
-
-p
-
-QB
-
-Console
-
-Visible code (react):
-import React from 'react';
-import './style.css';
-export default function App() {
-  const data = [1,2,2,3]
-  return (
-      <p>Start editing to see some magic happen :)</p>
-  );
-}
+Visible code (unknown language):
+xX  fo] Breast_dashboard.x! X  4 AZBrain Dashboard  xX
+& = CG G Search Google or type a URL                                                                         Q  ©  1)   Mod
+i [D Elements Console Sources Network Performance Memory Application Security
+1D] (2) ~  top v  ©   Y Filter                                         No screenshot captured yet.
 
 Visible terminal output:
 None
 
 Visible errors:
-Error in src/App.js (8:3)
-Unexpected keyword or identifier.
+None
 
 Required analysis mode: GENERAL
 

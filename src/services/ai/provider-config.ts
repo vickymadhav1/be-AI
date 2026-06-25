@@ -1,11 +1,18 @@
-export type ProviderName = 'groq' | 'gemini' | 'openrouter' | 'together' | 'huggingface';
+export type ProviderName =
+  | 'groq'
+  | 'gemini'
+  | 'openrouter'
+  | 'together'
+  | 'huggingface'
+  | 'openai';
 
 export type ProviderHealthStatus =
   | 'healthy'
   | 'invalid_key'
   | 'rate_limited'
   | 'offline'
-  | 'disabled';
+  | 'disabled'
+  | 'openai';
 
 export const sanitizeApiKey = (value?: string): string | undefined => {
   if (!value) return undefined;
@@ -23,8 +30,8 @@ const keyPatterns: Record<ProviderName, RegExp> = {
   openrouter: /^sk-or-v1-[A-Za-z0-9_-]{20,}$/,
   together: /^(?:key_|tgp_v1_)[A-Za-z0-9_-]{16,}$/,
   huggingface: /^hf_[A-Za-z0-9]{20,}$/,
+  openai: /^sk-[A-Za-z0-9_-]+$/,
 };
-
 export const validateProviderKey = (
   provider: ProviderName,
   rawValue?: string,

@@ -10,6 +10,20 @@ import { isQuestion } from '../utils/is-question';
 import { verifyAccessToken } from '../services/token.service';
 import { setRealtimeServer } from './realtime.gateway';
 
+const meetingAppPatterns: Array<{ name: string; pattern: RegExp }> = [
+  { name: 'Microsoft Teams', pattern: /microsoft teams|teams/i },
+  { name: 'Zoom', pattern: /\bzoom\b|zoom meeting/i },
+  { name: 'Google Meet', pattern: /google meet|meet\.google|meet -/i },
+  { name: 'Cisco Webex', pattern: /webex|cisco webex/i },
+  { name: 'Slack Huddles', pattern: /slack|huddle/i },
+  { name: 'Discord', pattern: /discord/i },
+  { name: 'Skype', pattern: /skype/i },
+];
+
+const detectMeetingApp = (value: string): string => {
+  return meetingAppPatterns.find(({ pattern }) => pattern.test(value))?.name ?? '';
+};
+
 const toError = (error: unknown) => ({
   message: error instanceof Error ? error.message : 'Unexpected realtime server error',
   code:
@@ -115,6 +129,54 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
         io.to(sessionId).emit('assistant:response', suggestion);
         io.to(sessionId).emit('answer:generated', suggestion);
         respond(acknowledge, suggestion);
+      } catch (error) {
+        fail(socket, acknowledge, error);
+      }
+    });
+
+    socket.on('interview:start', async (payload, acknowledge) => {
+      try {
+        console.info('[Interview] Start Request', {
+          sessionId: payload.sessionId,
+          sourceId: payload.sourceId,
+          sourceName: payload.sourceName,
+        });
+        await getSessionById(userId, payload.sessionId);
+        await socket.join(payload.sessionId);
+
+        const activeWindowTitle =
+          payload.activeWindowTitle || payload.sourceName || '';
+        const activeMeetingApp =
+          payload.activeMeetingApp ||
+          detectMeetingApp(`${payload.sourceName ?? ''} ${activeWindowTitle}`);
+
+        console.info('[Interview] Active Window Detected', {
+          activeWindowTitle: activeWindowTitle || 'not detected',
+        });
+        console.info(
+          `[Interview] Meeting App: ${activeMeetingApp || 'None detected'}`,
+        );
+
+        const response = {
+          success: true,
+          activeMeetingApp,
+          activeWindowTitle,
+        };
+        io.to(payload.sessionId).emit('interview:started', response);
+        respond(acknowledge, response);
+      } catch (error) {
+        fail(socket, acknowledge, error);
+      }
+    });
+
+    socket.on('interview:stop', async ({ sessionId }, acknowledge) => {
+      try {
+        console.info('[Interview] Stop Request', { sessionId });
+        await getSessionById(userId, sessionId);
+        console.info('[Interview] Analysis Pipeline Stopped', { sessionId });
+        const response = { success: true };
+        io.to(sessionId).emit('interview:stopped', response);
+        respond(acknowledge, response);
       } catch (error) {
         fail(socket, acknowledge, error);
       }

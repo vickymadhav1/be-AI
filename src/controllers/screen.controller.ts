@@ -11,12 +11,54 @@ import { isQuestion } from '../utils/is-question';
 import { prisma } from '../config/db';
 import { resolveScreenIntelligenceQuestion } from '../services/screen-intelligence.service';
 
+const meetingAppPatterns: Array<{ name: string; pattern: RegExp }> = [
+  { name: 'Microsoft Teams', pattern: /microsoft teams|teams/i },
+  { name: 'Zoom', pattern: /\bzoom\b|zoom meeting/i },
+  { name: 'Google Meet', pattern: /google meet|meet\.google|meet -/i },
+  { name: 'Cisco Webex', pattern: /webex|cisco webex/i },
+  { name: 'Slack Huddles', pattern: /slack|huddle/i },
+  { name: 'Discord', pattern: /discord/i },
+  { name: 'Skype', pattern: /skype/i },
+];
+
+const detectMeetingApp = (value: string): string => {
+  return meetingAppPatterns.find(({ pattern }) => pattern.test(value))?.name ?? '';
+};
+
 export const capture = async (request: Request, response: Response): Promise<void> => {
+  const activeMeetingApp = String(request.body.activeMeetingApp ?? '');
+  const activeWindowTitle = String(request.body.activeWindowTitle ?? '');
+  const sourceName = String(request.body.sourceName ?? '');
+  const verifiedMeetingApp =
+    detectMeetingApp(activeMeetingApp) ||
+    detectMeetingApp(activeWindowTitle) ||
+    detectMeetingApp(sourceName);
+
+  if (!verifiedMeetingApp) {
+    console.info('[Capture] Unsupported Application - Ignored', {
+      activeWindowTitle: activeWindowTitle || 'not detected',
+      sourceName: sourceName || 'not provided',
+    });
+    sendSuccess(response, 202, {
+      context: null,
+      detectedQuestion: '',
+      suggestion: null,
+      skipped: true,
+    });
+    return;
+  }
+
+  console.info('[Capture] Active Meeting Verified', {
+    meetingApp: verifiedMeetingApp,
+    activeWindowTitle,
+  });
+
   if (!request.file) {
     throw new AppError(400, 'A screenshot is required', 'SCREENSHOT_REQUIRED');
   }
 
   const sessionId = String(request.body.sessionId);
+  console.info('[Capture] Processing Screenshot', { sessionId });
   const result = await screenContextService.analyzeScreenshot(
     request.user!.id,
     sessionId,

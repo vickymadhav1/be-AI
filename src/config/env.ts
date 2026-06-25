@@ -28,18 +28,13 @@ const envSchema = z
     JWT_EXPIRES_IN: z.string().default('7d'),
     GOOGLE_APPLICATION_CREDENTIALS: optionalString,
     FIREBASE_PROJECT_ID: optionalString,
-    FIREBASE_CLIENT_EMAIL: z.preprocess(
-      (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
-      z.email('FIREBASE_CLIENT_EMAIL must be valid').optional(),
-    ),
+    FIREBASE_CLIENT_EMAIL: z.preprocess((value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),z.email('FIREBASE_CLIENT_EMAIL must be valid').optional()),
     FIREBASE_PRIVATE_KEY: optionalString,
     CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:47831'),
     GROQ_API_KEY: optionalString,
     GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
     GROQ_TRANSCRIPTION_MODEL: z.string().default('whisper-large-v3-turbo'),
-    GROQ_VISION_MODEL: z
-      .string()
-      .default('meta-llama/llama-4-scout-17b-16e-instruct'),
+    GROQ_VISION_MODEL: z.string().default('meta-llama/llama-4-scout-17b-16e-instruct'),
     GEMINI_API_KEY: optionalString,
     GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
     GEMINI_TRANSCRIPTION_MODEL: z.string().default('gemini-2.0-flash'),
@@ -52,11 +47,18 @@ const envSchema = z
     HUGGINGFACE_API_KEY: optionalString,
     HUGGINGFACE_MODEL: z.string().default('Qwen/Qwen2.5-Coder-32B-Instruct'),
     HUGGINGFACE_TRANSCRIPTION_MODEL: z.string().default('openai/whisper-large-v3'),
-    AI_PROVIDER_PRIORITY: z
-      .string()
-      .default('groq,gemini,openrouter,together,huggingface'),
+    OPENAI_API_KEY: optionalString,
+    OPENAI_MODEL: z.string().default('gpt-5'),
+    OPENAI_CODING_MODEL: optionalString,
+    OPENAI_DEFAULT_MODEL:optionalString,
+    OPENAI_DEBUGGING_MODEL: optionalString,
+    OPENAI_VISION_MODEL: optionalString,
+    OPENAI_TRANSCRIPTION_MODEL: z.string().default('gpt-4o-transcribe'),
+    AI_PROVIDER_PRIORITY: z.string().default('openai,groq,gemini,openrouter,together,huggingface'),
     AI_PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(25000),
     AI_PROVIDER_COOLDOWN_MS: z.coerce.number().int().positive().default(60000),
+    RAZORPAY_KEY_ID: optionalString,
+    RAZORPAY_KEY_SECRET: optionalString,
   })
   .superRefine((value, context) => {
     const hasCredentialFile = Boolean(value.GOOGLE_APPLICATION_CREDENTIALS);
@@ -77,23 +79,16 @@ const envSchema = z
   });
 
 const parsed = envSchema.safeParse(process.env);
-
 if (!parsed.success) {
   const issues = parsed.error.issues
-    .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-    .join('\n');
-
+    .map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('\n');
   throw new Error(`Invalid environment configuration:\n${issues}`);
 }
 
 export const env = {
   ...parsed.data,
-  CORS_ORIGINS: parsed.data.CORS_ORIGIN.split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
-  AI_PROVIDER_PRIORITIES: parsed.data.AI_PROVIDER_PRIORITY.split(',')
-    .map((provider) => provider.trim().toLowerCase())
-    .filter(Boolean),
+  CORS_ORIGINS: parsed.data.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean),
+  AI_PROVIDER_PRIORITIES: parsed.data.AI_PROVIDER_PRIORITY.split(',') .map((provider) => provider.trim().toLowerCase()).filter(Boolean),
   // Environment files store newlines as "\n"; Firebase expects real line breaks.
   FIREBASE_PRIVATE_KEY: parsed.data.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };

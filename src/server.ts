@@ -6,9 +6,12 @@ import { env } from './config/env';
 import { attachSocketServer } from './socket/socket.server';
 import { shutdownOcr } from './services/ocr.service';
 import { aiOrchestrator } from './services/ai';
+import { logRazorpayConfigStatus } from './services/razorpay.service';
 
 const server = createServer(app);
 const io = attachSocketServer(server);
+
+logRazorpayConfigStatus();
 
 server.listen(env.PORT, () => {
   console.log(`Interview Mate AI API listening on http://localhost:${env.PORT}`);

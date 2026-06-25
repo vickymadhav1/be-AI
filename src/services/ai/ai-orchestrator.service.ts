@@ -42,6 +42,7 @@ const providerNames: ProviderName[] = [
   'openrouter',
   'together',
   'huggingface',
+  'openai'
 ];
 
 export class AIOrchestrator implements AIProvider {
@@ -50,13 +51,34 @@ export class AIOrchestrator implements AIProvider {
 
   constructor() {
     const keys = {
+       openai: validateProviderKey('openai', env.OPENAI_API_KEY),
       groq: validateProviderKey('groq', env.GROQ_API_KEY),
       gemini: validateProviderKey('gemini', env.GEMINI_API_KEY),
       openrouter: validateProviderKey('openrouter', env.OPENROUTER_API_KEY),
       together: validateProviderKey('together', env.TOGETHER_API_KEY),
       huggingface: validateProviderKey('huggingface', env.HUGGINGFACE_API_KEY),
+      
     };
+
+
+    console.log(
+  '[AI Priority]',
+  env.AI_PROVIDER_PRIORITIES,
+);
+
+
     const providers = new Map<ProviderName, OpenAICompatibleProvider>([
+      ['openai',new OpenAICompatibleProvider({
+        name: 'openai',
+        apiKey: env.OPENAI_API_KEY,
+        baseURL: 'https://api.openai.com/v1',
+        defaultModel: env.OPENAI_MODEL,
+        codingModel: env.OPENAI_CODING_MODEL,
+        debuggingModel: env.OPENAI_DEBUGGING_MODEL,
+        theoryModel: env.OPENAI_MODEL,
+        visionModel: env.OPENAI_VISION_MODEL,
+        timeoutMs: env.AI_PROVIDER_TIMEOUT_MS,
+      })],
       ['groq', new OpenAICompatibleProvider({
         name: 'groq',
         baseURL: 'https://api.groq.com/openai/v1',
@@ -115,7 +137,7 @@ export class AIOrchestrator implements AIProvider {
         enabled: keys.huggingface.valid,
       })],
     ]);
-
+    
     const orderedNames = [...env.AI_PROVIDER_PRIORITIES, ...providerNames]
       .filter((name, index, all): name is ProviderName =>
         providerNames.includes(name as ProviderName) && all.indexOf(name) === index,
@@ -125,11 +147,7 @@ export class AIOrchestrator implements AIProvider {
       const provider = providers.get(name)!;
       const configured = provider.isConfigured();
       const keyResult = keys[name];
-      const initialStatus: ProviderHealthStatus = configured
-        ? 'healthy'
-        : keyResult.key
-          ? 'invalid_key'
-          : 'disabled';
+      const initialStatus: ProviderHealthStatus = configured ? 'healthy' : keyResult.key  ? 'invalid_key'  : 'disabled';
       if (!configured) {
         console.warn(`[AI Health] ${name}: ${keyResult.reason}; provider disabled.`);
       }
@@ -279,6 +297,7 @@ export class AIOrchestrator implements AIProvider {
         return result;
       } catch (error) {
         this.markFailure(entry, error);
+
         console.warn(`[AIOrchestrator] ${entry.name} failed; continuing to next provider`, {
           task,
           status: getProviderErrorStatus(error),

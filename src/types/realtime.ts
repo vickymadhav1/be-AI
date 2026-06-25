@@ -8,6 +8,14 @@ export interface SuggestionResult {
   confidence: number;
 }
 
+export interface InterviewStartPayload {
+  sessionId: string;
+  sourceId?: string;
+  sourceName?: string;
+  activeMeetingApp?: string;
+  activeWindowTitle?: string;
+}
+
 export interface ClientToServerEvents {
   'session:join': (
     payload: { sessionId: string },
@@ -33,6 +41,14 @@ export interface ClientToServerEvents {
     payload: { sessionId: string; question: string },
     acknowledge?: (response: SocketAck) => void,
   ) => void;
+  'interview:start': (
+    payload: InterviewStartPayload,
+    acknowledge?: (response: SocketAck) => void,
+  ) => void;
+  'interview:stop': (
+    payload: { sessionId: string },
+    acknowledge?: (response: SocketAck) => void,
+  ) => void;
 }
 
 export interface ServerToClientEvents {
@@ -44,6 +60,12 @@ export interface ServerToClientEvents {
   'question:detected': (question: unknown) => void;
   'answer:generated': (suggestion: unknown) => void;
   'screen:updated': (context: unknown) => void;
+  'interview:started': (payload: {
+    success: boolean;
+    activeMeetingApp: string;
+    activeWindowTitle: string;
+  }) => void;
+  'interview:stopped': (payload: { success: boolean }) => void;
   'server:error': (error: { message: string; code?: string }) => void;
 }
 

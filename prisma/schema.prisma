@@ -18,9 +18,58 @@ model User {
 
   interviews Interview[]
   sessions   InterviewSession[]
+  invisibleSubscriptions InvisibleSubscription[]
+  paymentRecords PaymentRecord[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model InvisibleSubscription {
+  id               String   @id @default(cuid())
+  userId           String
+  planId           String
+  planName         String
+  status           String   @default("pending")
+  totalCredits     Int
+  remainingCredits Int
+  creditsUsed      Int      @default(0)
+  totalMinutes     Int
+  creditsPerMinute Int
+  purchaseDate     DateTime?
+  lastUsedAt       DateTime?
+  startedAt        DateTime?
+  expiresAt        DateTime?
+  paymentId        String?
+  orderId          String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([orderId])
+}
+
+model PaymentRecord {
+  id                  String   @id @default(cuid())
+  userId              String
+  planId              String
+  amount              Int
+  currency            String   @default("INR")
+  status              String   @default("pending")
+  razorpayOrderId     String   @unique
+  razorpayPaymentId   String?
+  razorpaySignature   String?
+  failureReason       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
 }
 
 model InterviewSession {

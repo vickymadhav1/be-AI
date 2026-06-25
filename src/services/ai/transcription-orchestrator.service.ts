@@ -11,6 +11,7 @@ interface TranscriptionInput {
 }
 
 const providerOrder: ProviderName[] = [
+  'openai',
   'groq',
   'gemini',
   'openrouter',
@@ -19,6 +20,7 @@ const providerOrder: ProviderName[] = [
 ];
 
 const keys = {
+  openai: validateProviderKey('openai', env.OPENAI_API_KEY).key,
   groq: validateProviderKey('groq', env.GROQ_API_KEY).key,
   gemini: validateProviderKey('gemini', env.GEMINI_API_KEY).key,
   openrouter: validateProviderKey('openrouter', env.OPENROUTER_API_KEY).key,
@@ -134,6 +136,13 @@ const transcribers: Record<ProviderName, (input: TranscriptionInput) => Promise<
     ));
     return String(payload.text ?? '').trim();
   },
+  openai: async (input) =>
+  multipartTranscription(
+    'https://api.openai.com/v1/audio/transcriptions',
+    keys.openai!,
+    env.OPENAI_TRANSCRIPTION_MODEL,
+    input,
+  ),
 };
 
 export const transcribeAudio = async (

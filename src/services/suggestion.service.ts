@@ -11,8 +11,38 @@ export const createSuggestion = async (
   sessionId: string,
   question: string,
 ) => {
+  const generated = await createSuggestionDraft(userId, sessionId, question);
+
+  return prisma.suggestion.create({
+    data: {
+      sessionId,
+      provider: generated.provider,
+      question,
+      type: generated.type,
+      answer: generated.answer,
+      code: generated.code || null,
+      output: generated.output || null,
+      language: generated.language || null,
+      complexity: generated.complexity || null,
+      rootCause: generated.rootCause || null,
+      fix: generated.fix || null,
+      analysisMode: generated.analysisMode,
+      promptDebug: generated.promptDebug,
+      keyPoints: generated.keyPoints,
+      confidence: generated.answer.trim()
+        ? Math.max(0.7, normalizeConfidence(generated.confidence))
+        : normalizeConfidence(generated.confidence),
+    },
+  });
+};
+
+export const createSuggestionDraft = async (
+  userId: string,
+  sessionId: string,
+  question: string,
+) => {
   await getSessionById(userId, sessionId);
-  
+
   const [transcriptHistory, screenContext] = await Promise.all([
     
     prisma.transcript.findMany({
@@ -94,27 +124,7 @@ export const createSuggestion = async (
     sessionId,
   });
 
-  return prisma.suggestion.create({
-    data: {
-      sessionId,
-      provider: generated.provider,
-      question,
-      type: generated.type,
-      answer: generated.answer,
-      code: generated.code || null,
-      output: generated.output || null,
-      language: generated.language || null,
-      complexity: generated.complexity || null,
-      rootCause: generated.rootCause || null,
-      fix: generated.fix || null,
-      analysisMode: generated.analysisMode,
-      promptDebug: generated.promptDebug,
-      keyPoints: generated.keyPoints,
-      confidence: generated.answer.trim()
-        ? Math.max(0.7, normalizeConfidence(generated.confidence))
-        : normalizeConfidence(generated.confidence),
-    },
-  });
+  return generated;
 };
 
 export const listSessionSuggestions = async (userId: string, sessionId: string) => {

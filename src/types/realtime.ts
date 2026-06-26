@@ -14,6 +14,9 @@ export interface InterviewStartPayload {
   sourceName?: string;
   activeMeetingApp?: string;
   activeWindowTitle?: string;
+  stealthMode?: boolean;
+  stealthPlatform?: string;
+  stealthProtectionSupported?: boolean;
 }
 
 export interface ClientToServerEvents {
@@ -34,6 +37,16 @@ export interface ClientToServerEvents {
       sessionId: string;
       speaker: 'interviewer' | 'candidate' | 'system';
       text: string;
+    },
+    acknowledge?: (response: SocketAck) => void,
+  ) => void;
+  'voice:partial': (
+    payload: {
+      sessionId: string;
+      text: string;
+      isFinal: boolean;
+      source: 'system' | 'microphone' | 'unknown';
+      confidence?: number;
     },
     acknowledge?: (response: SocketAck) => void,
   ) => void;
@@ -59,6 +72,10 @@ export interface ServerToClientEvents {
   'transcript:update': (transcript: unknown) => void;
   'question:detected': (question: unknown) => void;
   'answer:generated': (suggestion: unknown) => void;
+  'voice:partial': (payload: unknown) => void;
+  'voice:question': (payload: unknown) => void;
+  'voice:answer:chunk': (payload: unknown) => void;
+  'voice:answer:complete': (payload: unknown) => void;
   'screen:updated': (context: unknown) => void;
   'interview:started': (payload: {
     success: boolean;

@@ -14,6 +14,7 @@ import { sessionRouter } from './routes/session.routes';
 import { transcriptRouter } from './routes/transcript.routes';
 import { screenRouter } from './routes/screen.routes';
 import { invisibleSubscriptionRouter } from './routes/invisible-subscription.routes';
+import { supportRouter } from './routes/support.routes';
 
 export const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/transcripts', transcriptRouter);
 app.use('/api/assistant', assistantRouter);
 app.use('/api/screens', screenRouter);
 app.use('/api/invisible', invisibleSubscriptionRouter);
+app.use('/api/support', supportRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

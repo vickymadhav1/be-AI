@@ -85,6 +85,7 @@ model InterviewSession {
   interviewRunning Boolean @default(false)
   activeRunStartedAt DateTime?
   interviewDurationSeconds Int @default(0)
+  runtimeDurationTracked Boolean @default(false)
 
   transcripts Transcript[]
   suggestions Suggestion[]

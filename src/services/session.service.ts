@@ -63,6 +63,7 @@ export const startSessionRuntime = (userId: string, sessionId: string) =>
       data: {
         interviewRunning: true,
         activeRunStartedAt: new Date(),
+        runtimeDurationTracked: true,
       },
     });
   });
@@ -83,6 +84,7 @@ export const stopSessionRuntime = (userId: string, sessionId: string) =>
       data: {
         interviewRunning: false,
         activeRunStartedAt: null,
+        runtimeDurationTracked: true,
         interviewDurationSeconds:
           session.interviewDurationSeconds +
           elapsedSeconds(session.activeRunStartedAt, stoppedAt),
@@ -104,6 +106,7 @@ export const recoverInterruptedSessionRuntimes = async (): Promise<number> => {
         data: {
           interviewRunning: false,
           activeRunStartedAt: null,
+          runtimeDurationTracked: true,
           interviewDurationSeconds:
             session.interviewDurationSeconds +
             elapsedSeconds(session.activeRunStartedAt, recoveredAt),
@@ -131,6 +134,7 @@ export const endSession = (userId: string, sessionId: string) =>
         endedAt,
         interviewRunning: false,
         activeRunStartedAt: null,
+        runtimeDurationTracked: session.runtimeDurationTracked || session.interviewRunning,
         interviewDurationSeconds:
           session.interviewDurationSeconds +
           (session.interviewRunning
@@ -159,6 +163,7 @@ export const getDashboardStatistics = async (
           interviewRunning: true,
           activeRunStartedAt: true,
           interviewDurationSeconds: true,
+          runtimeDurationTracked: true,
         },
       }),
       prisma.suggestion.count({ where: { session: { userId } } }),
@@ -175,8 +180,17 @@ export const getDashboardStatistics = async (
 
   const now = new Date();
   const completed = sessions.filter((session) => session.status === 'completed');
+  const completedWithTrackedRuntime = completed.filter(
+    (session) => session.runtimeDurationTracked,
+  );
   const today = sessions.filter(
     (session) => session.startedAt >= dayStart && session.startedAt < dayEnd,
+  );
+  const completedTodayWithTrackedRuntime = completedWithTrackedRuntime.filter(
+    (session) =>
+      session.endedAt !== null &&
+      session.endedAt >= dayStart &&
+      session.endedAt < dayEnd,
   );
   const runningSession = sessions
     .filter((session) => session.interviewRunning && session.activeRunStartedAt)
@@ -198,19 +212,19 @@ export const getDashboardStatistics = async (
       minutesRemaining: Math.floor(subscription.remainingMinutes),
       creditsUsed: subscription.creditsUsed,
       totalInterviewMinutes: Math.floor(
-        completed.reduce(
+        completedWithTrackedRuntime.reduce(
           (total, session) => total + session.interviewDurationSeconds,
           0,
         ) / 60,
       ),
       todayUsageMinutes: Math.floor(
-        today.reduce(
-          (total, session) => total + durationWithActiveRun(session),
+        completedTodayWithTrackedRuntime.reduce(
+          (total, session) => total + session.interviewDurationSeconds,
           0,
         ) / 60,
       ),
       currentSessionMinutes: runningSession?.activeRunStartedAt
-        ? Math.floor(elapsedSeconds(runningSession.activeRunStartedAt, now) / 60)
+        ? Math.floor(durationWithActiveRun(runningSession) / 60)
         : 0,
     },
     interviews: {
@@ -237,6 +251,19 @@ export const getDashboardStatistics = async (
     currentSession: {
       running: Boolean(runningSession),
       sessionId: runningSession?.id ?? null,
+    },
+    invisibleUsage: {
+      remainingMinutes: Math.floor(subscription.remainingMinutes),
+      lastUsedAt: subscription.lastUsedAt,
+      progress:
+        subscription.totalCredits > 0
+          ? Math.min(
+              100,
+              Math.round(
+                (subscription.remainingCredits / subscription.totalCredits) * 100,
+              ),
+            )
+          : 0,
     },
   };
 };

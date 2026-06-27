@@ -345,6 +345,7 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
           console.info('[AI] Processing Continues');
         }
         await getSessionById(userId, payload.sessionId);
+        await startSessionRuntime(userId, payload.sessionId);
         await socket.join(payload.sessionId);
 
         const activeWindowTitle =

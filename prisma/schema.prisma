@@ -82,6 +82,9 @@ model InterviewSession {
 
   startedAt DateTime  @default(now())
   endedAt   DateTime?
+  interviewRunning Boolean @default(false)
+  activeRunStartedAt DateTime?
+  interviewDurationSeconds Int @default(0)
 
   transcripts Transcript[]
   suggestions Suggestion[]

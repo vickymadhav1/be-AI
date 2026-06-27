@@ -1,7 +1,13 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import { env } from '../config/env';
-import { createSession, endSession } from '../services/session.service';
+import {
+  clearSessionData,
+  createSession,
+  endSession,
+  startSessionRuntime,
+  stopSessionRuntime,
+} from '../services/session.service';
 import { getSessionById } from '../services/session.service';
 import { createSuggestion } from '../services/suggestion.service';
 import { createTranscript } from '../services/transcript.service';
@@ -74,6 +80,7 @@ const emitAnswerChunks = async (
   let answer = '';
 
   for (let index = 0; index < words.length; index += 8) {
+    if (getVoiceState(sessionId).sequence !== sequence) return;
     answer = [...words.slice(0, index + 8)].join(' ');
     io.to(sessionId).emit('voice:answer:chunk', {
       sessionId,
@@ -118,6 +125,7 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
 
   io.on('connection', (socket) => {
     const userId = socket.data.auth.sub;
+    socket.data.activeInterviewSessions = new Set<string>();
 
     socket.on('session:join', async ({ sessionId }, acknowledge) => {
       try {
@@ -143,6 +151,7 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
     socket.on('session:end', async ({ sessionId }, acknowledge) => {
       try {
         const session = await endSession(userId, sessionId);
+        socket.data.activeInterviewSessions?.delete(sessionId);
         voiceStates.delete(sessionId);
         io.to(sessionId).emit('session:ended', session);
         respond(acknowledge, session);
@@ -175,7 +184,8 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
 
     socket.on('voice:partial', async (payload, acknowledge) => {
       try {
-        await getSessionById(userId, payload.sessionId);
+        await startSessionRuntime(userId, payload.sessionId);
+        socket.data.activeInterviewSessions?.add(payload.sessionId);
         await socket.join(payload.sessionId);
 
         const text = payload.text.trim().replace(/\s+/g, ' ');
@@ -255,6 +265,7 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
               confidence: payload.confidence,
             });
             await emitAnswerChunks(io, payload.sessionId, sequence, suggestion);
+            if (getVoiceState(payload.sessionId).sequence !== sequence) return;
             io.to(payload.sessionId).emit('voice:answer:complete', {
               id: `voice-${payload.sessionId}-${sequence}`,
               sessionId: payload.sessionId,
@@ -280,6 +291,7 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
             fail(socket, undefined, error);
           } finally {
             const activeState = getVoiceState(payload.sessionId);
+            if (activeState.sequence !== sequence) return;
             activeState.inFlight = false;
             const nextText = activeState.pendingText;
             if (nextText && nextText !== questionText) {
@@ -363,7 +375,8 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
     socket.on('interview:stop', async ({ sessionId }, acknowledge) => {
       try {
         console.info('[Interview] Stop Request', { sessionId });
-        await getSessionById(userId, sessionId);
+        await stopSessionRuntime(userId, sessionId);
+        socket.data.activeInterviewSessions?.delete(sessionId);
         voiceStates.delete(sessionId);
         console.info('[Interview] Analysis Pipeline Stopped', { sessionId });
         const response = { success: true };
@@ -371,6 +384,52 @@ export const attachSocketServer = (httpServer: HttpServer): RealtimeServer => {
         respond(acknowledge, response);
       } catch (error) {
         fail(socket, acknowledge, error);
+      }
+    });
+
+    socket.on('interview:clear', async ({ sessionId }, acknowledge) => {
+      try {
+        console.info('[Interview] Clear Request Received', { sessionId });
+        const result = await clearSessionData(userId, sessionId);
+        console.info('[Interview] Clear Session Found', {
+          sessionId,
+          cleared: result.cleared,
+        });
+
+        const voiceState = getVoiceState(sessionId);
+        voiceState.sequence += 1;
+        voiceState.inFlight = false;
+        voiceState.lastGeneratedText = '';
+        voiceState.pendingText = '';
+        voiceState.lastStartedAt = 0;
+
+        console.info('[Interview] Session Data Cleared', {
+          sessionId,
+          cleared: result.cleared,
+        });
+        const response = {
+          sessionId,
+          cleared: true,
+          session: result.session,
+          deleted: result.cleared,
+        };
+        respond(acknowledge, response);
+        console.info('[Interview] Clear Response Sent', { sessionId });
+      } catch (error) {
+        fail(socket, acknowledge, error);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      const activeSessions = [...(socket.data.activeInterviewSessions ?? [])];
+      socket.data.activeInterviewSessions?.clear();
+      for (const sessionId of activeSessions) {
+        void stopSessionRuntime(userId, sessionId).catch((error) => {
+          console.error('[Interview] Failed to stop disconnected session', {
+            sessionId,
+            error,
+          });
+        });
       }
     });
   });

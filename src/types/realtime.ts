@@ -62,6 +62,10 @@ export interface ClientToServerEvents {
     payload: { sessionId: string },
     acknowledge?: (response: SocketAck) => void,
   ) => void;
+  'interview:clear': (
+    payload: { sessionId: string },
+    acknowledge?: (response: SocketAck) => void,
+  ) => void;
 }
 
 export interface ServerToClientEvents {
@@ -88,6 +92,7 @@ export interface ServerToClientEvents {
 
 export interface SocketData {
   auth: JwtPayload;
+  activeInterviewSessions?: Set<string>;
 }
 
 export interface SocketAck {

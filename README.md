@@ -21,6 +21,9 @@ Production-oriented Express API for Firebase authentication, Neon PostgreSQL per
 3. In Neon, copy the pooled PostgreSQL connection string into `DATABASE_URL` and the
    direct connection string into `DIRECT_URL`. Runtime traffic uses the pooler while
    Prisma migrations use the direct connection. Keep `sslmode=require` in both URLs.
+   Runtime connections use Prisma's Neon adapter. The optional
+   `DATABASE_POOL_MAX`, `DATABASE_CONNECT_TIMEOUT_MS`, and
+   `DATABASE_IDLE_TIMEOUT_MS` variables tune its bounded, autosuspend-safe pool.
 
 4. In Firebase Console, open **Project settings > Service accounts** and generate a private key. Save the JSON file outside source control and set `GOOGLE_APPLICATION_CREDENTIALS` to its path. Inline Firebase variables remain supported as an alternative.
 

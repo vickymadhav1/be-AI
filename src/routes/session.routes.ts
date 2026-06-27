@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { end, create, getById, list, remove } from '../controllers/session.controller';
+import {
+  dashboardStatistics,
+  end,
+  create,
+  getById,
+  list,
+  remove,
+} from '../controllers/session.controller';
 import { listForSession as listSuggestions } from '../controllers/assistant.controller';
 import { listForSession as listTranscripts } from '../controllers/transcript.controller';
 import { authenticateJwt } from '../middleware/jwt-auth.middleware';
@@ -11,6 +18,7 @@ export const sessionRouter = Router();
 sessionRouter.use(authenticateJwt);
 sessionRouter.post('/', validateRequest({ body: createSessionSchema }), asyncHandler(create));
 sessionRouter.get('/', asyncHandler(list));
+sessionRouter.get('/dashboard-statistics', asyncHandler(dashboardStatistics));
 sessionRouter.get('/:id/transcripts', validateRequest({ params: sessionIdParamsSchema }), asyncHandler(listTranscripts));
 sessionRouter.get('/:id/suggestions', validateRequest({ params: sessionIdParamsSchema }), asyncHandler(listSuggestions));
 sessionRouter.patch('/:id/end', validateRequest({ params: sessionIdParamsSchema }), asyncHandler(end));

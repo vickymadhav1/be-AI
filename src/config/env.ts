@@ -66,23 +66,31 @@ const envSchema = z
     RAZORPAY_KEY_ID: optionalString,
     RAZORPAY_KEY_SECRET: optionalString,
   })
-  .superRefine((value, context) => {
-    const hasCredentialFile = Boolean(value.GOOGLE_APPLICATION_CREDENTIALS);
-    const hasInlineCredentials = Boolean(
-      value.FIREBASE_PROJECT_ID &&
-        value.FIREBASE_CLIENT_EMAIL &&
-        value.FIREBASE_PRIVATE_KEY,
-    );
+.superRefine((value, context) => {
+  // Skip Firebase validation if Firebase isn't being used.
+  // Enable this block again when Firebase Admin authentication is deployed.
+  const firebaseEnabled = false;
 
-    if (!hasCredentialFile && !hasInlineCredentials) {
-      context.addIssue({
-        code: 'custom',
-        path: ['GOOGLE_APPLICATION_CREDENTIALS'],
-        message:
-          'Set GOOGLE_APPLICATION_CREDENTIALS or provide all FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY values',
-      });
-    }
-  });
+  if (!firebaseEnabled) {
+    return;
+  }
+
+  const hasCredentialFile = Boolean(value.GOOGLE_APPLICATION_CREDENTIALS);
+  const hasInlineCredentials = Boolean(
+    value.FIREBASE_PROJECT_ID &&
+      value.FIREBASE_CLIENT_EMAIL &&
+      value.FIREBASE_PRIVATE_KEY,
+  );
+
+  if (!hasCredentialFile && !hasInlineCredentials) {
+    context.addIssue({
+      code: 'custom',
+      path: ['GOOGLE_APPLICATION_CREDENTIALS'],
+      message:
+        'Set GOOGLE_APPLICATION_CREDENTIALS or provide all FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY values',
+    });
+  }
+});
 
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {

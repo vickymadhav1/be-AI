@@ -36,7 +36,7 @@ const envSchema = z
     FIREBASE_PROJECT_ID: optionalString,
     FIREBASE_CLIENT_EMAIL: z.preprocess((value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),z.email('FIREBASE_CLIENT_EMAIL must be valid').optional()),
     FIREBASE_PRIVATE_KEY: optionalString,
-    CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:47831'),
+    CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:47831,https://interviewmateai.netlify.app'),
     GROQ_API_KEY: optionalString,
     GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
     GROQ_TRANSCRIPTION_MODEL: z.string().default('whisper-large-v3-turbo'),

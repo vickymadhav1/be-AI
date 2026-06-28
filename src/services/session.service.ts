@@ -45,6 +45,9 @@ const elapsedSeconds = (startedAt: Date | null, endedAt: Date): number =>
     ? Math.max(0, Math.floor((endedAt.getTime() - startedAt.getTime()) / 1_000))
     : 0;
 
+const consumedMinutesFromSeconds = (seconds: number): number =>
+  seconds > 0 ? Math.ceil(seconds / 60) : 0;
+
 export const startSessionRuntime = (userId: string, sessionId: string) =>
   prisma.$transaction(async (transaction) => {
     const session = await transaction.interviewSession.findFirst({
@@ -126,7 +129,46 @@ export const endSession = (userId: string, sessionId: string) =>
       throw new AppError(404, 'Session was not found', 'SESSION_NOT_FOUND');
     }
 
+    if (session.settledAt) {
+      return transaction.interviewSession.findUniqueOrThrow({
+        where: { id: sessionId },
+        include: sessionInclude,
+      });
+    }
+
     const endedAt = new Date();
+    const finalElapsedSeconds =
+      session.interviewDurationSeconds +
+      (session.interviewRunning
+        ? elapsedSeconds(session.activeRunStartedAt, endedAt)
+        : 0);
+    const consumedMinutes = consumedMinutesFromSeconds(finalElapsedSeconds);
+    const subscription = consumedMinutes > 0
+      ? await transaction.invisibleSubscription.findFirst({
+          where: { userId, status: 'active', remainingCredits: { gt: 0 } },
+          orderBy: { createdAt: 'desc' },
+        })
+      : null;
+    const consumedCredits = subscription
+      ? Math.min(
+          subscription.remainingCredits,
+          subscription.creditsPerMinute * consumedMinutes,
+        )
+      : 0;
+
+    if (subscription && consumedCredits > 0) {
+      const remainingCredits = Math.max(0, subscription.remainingCredits - consumedCredits);
+      await transaction.invisibleSubscription.update({
+        where: { id: subscription.id },
+        data: {
+          remainingCredits,
+          creditsUsed: subscription.creditsUsed + consumedCredits,
+          lastUsedAt: endedAt,
+          status: remainingCredits <= 0 ? 'exhausted' : 'active',
+        },
+      });
+    }
+
     return transaction.interviewSession.update({
       where: { id: sessionId },
       data: {
@@ -135,11 +177,12 @@ export const endSession = (userId: string, sessionId: string) =>
         interviewRunning: false,
         activeRunStartedAt: null,
         runtimeDurationTracked: session.runtimeDurationTracked || session.interviewRunning,
-        interviewDurationSeconds:
-          session.interviewDurationSeconds +
-          (session.interviewRunning
-            ? elapsedSeconds(session.activeRunStartedAt, endedAt)
-            : 0),
+        interviewDurationSeconds: finalElapsedSeconds,
+        settledAt: endedAt,
+        settlementElapsedSeconds: finalElapsedSeconds,
+        settlementConsumedMinutes: consumedMinutes,
+        settlementConsumedCredits: consumedCredits,
+        settlementSubscriptionId: subscription?.id ?? null,
       },
       include: sessionInclude,
     });

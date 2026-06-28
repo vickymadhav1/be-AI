@@ -9,6 +9,7 @@
     "dev:dist": "npm run build && nodemon --watch dist --ext js,json --exec \"node dist/server.js\"",
     "build": "tsc",
     "start": "node dist/server.js",
+    "start:production": "node -e \"process.env.NODE_ENV='production'; require('./dist/server.js')\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"

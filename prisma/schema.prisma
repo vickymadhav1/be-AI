@@ -86,6 +86,11 @@ model InterviewSession {
   activeRunStartedAt DateTime?
   interviewDurationSeconds Int @default(0)
   runtimeDurationTracked Boolean @default(false)
+  settledAt DateTime?
+  settlementElapsedSeconds Int @default(0)
+  settlementConsumedMinutes Int @default(0)
+  settlementConsumedCredits Int @default(0)
+  settlementSubscriptionId String?
 
   transcripts Transcript[]
   suggestions Suggestion[]

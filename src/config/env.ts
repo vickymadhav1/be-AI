@@ -2,10 +2,13 @@ import path from 'node:path';
 import { config as loadDotenv } from 'dotenv';
 import { z } from 'zod';
 
+const runtimeEnvironment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+const environmentFile = runtimeEnvironment === 'production' ? '.env.production' : '.env';
+
 // Resolve from this module instead of process.cwd(), so npm, nodemon, Electron,
 // and parent-directory launches all load the same backend environment file.
 loadDotenv({
-  path: path.resolve(__dirname, '../../.env'),
+  path: path.resolve(__dirname, '../../', environmentFile),
   quiet: true,
 });
 

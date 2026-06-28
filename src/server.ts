@@ -1,3 +1,4 @@
+import './config/logging';
 import { createServer } from 'node:http';
 import { app } from './app';
 import { connectDatabase, disconnectDatabase } from './config/db';

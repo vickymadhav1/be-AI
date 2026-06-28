@@ -62,7 +62,10 @@ export const errorHandler = (
     return;
   }
 
-  console.error(error);
+  const requestLogger = response.locals.logger as
+    | { error: (message: unknown, ...details: unknown[]) => void }
+    | undefined;
+  (requestLogger ?? console).error('Unhandled HTTP request error', error);
 
   response.status(500).json({
     success: false,

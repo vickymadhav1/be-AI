@@ -15,6 +15,7 @@ import { transcriptRouter } from './routes/transcript.routes';
 import { screenRouter } from './routes/screen.routes';
 import { invisibleSubscriptionRouter } from './routes/invisible-subscription.routes';
 import { supportRouter } from './routes/support.routes';
+import { requestContext } from './middleware/request-context.middleware';
 
 export const app = express();
 
@@ -32,12 +33,20 @@ app.use(
       callback(new Error(`Origin ${origin} is not allowed by CORS`));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Request-ID',
+      'X-Session-ID',
+      'X-Lifecycle-ID',
+    ],
+    exposedHeaders: ['X-Request-ID'],
     credentials: true,
   }),
 );
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
+app.use(requestContext);
 app.use(
   '/api',
   rateLimit({

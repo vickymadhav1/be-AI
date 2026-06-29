@@ -25,7 +25,13 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || env.CORS_ORIGINS.includes(origin)) {
+      const isAllowedOrigin =
+        !origin ||
+        env.CORS_ORIGINS.includes(origin) ||
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+
+      if (isAllowedOrigin) {
         callback(null, true);
         return;
       }
